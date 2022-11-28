@@ -6,21 +6,26 @@ import { AuthContext } from "../../context/AuthContext";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import { useDeleteProject } from "../../custom-hooks/useDeleteProject";
+import { useParams } from "react-router-dom";
 
-const Projects = (props) => {
+const UserProject = (props) => {
   const { authData } = useContext(AuthContext);
   const [list, setList] = useState();
   const httpAbortCtrl = new AbortController();
   const { deleteProject } = useDeleteProject();
+  const uid = useParams().uid;
 
   useEffect(() => {
     const getProjects = async () => {
       try {
-        await fetch(`${process.env.REACT_APP_BACKEND_URL}/projects`, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${authData.token}` },
-          signal: httpAbortCtrl.signal,
-        })
+        await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/projects/user/${uid}`,
+          {
+            method: "GET",
+            headers: { Authorization: `Bearer ${authData.token}` },
+            signal: httpAbortCtrl.signal,
+          }
+        )
           .then((response) => {
             if (response.ok) {
               return response.json();
@@ -28,6 +33,7 @@ const Projects = (props) => {
             throw response;
           })
           .then((data) => {
+            console.log(data);
             setList(data.projects);
           })
           .catch((err) => {
@@ -45,7 +51,7 @@ const Projects = (props) => {
 
     // Abort signal
     return () => httpAbortCtrl.abort();
-  }, [authData]);
+  }, [uid, authData]);
 
   const handleDelete = (id) => {
     confirmAlert({
@@ -70,9 +76,11 @@ const Projects = (props) => {
 
   return (
     <React.Fragment>
-      <HeaderContainer title="Projects" />
+      <HeaderContainer title="My Projects" />
       {list && list.length === 0 && (
-        <AlertWarning type="warning" message="No Projects Uploaded" />
+        <div className="container">
+          <AlertWarning type="warning" message="No Projects Uploaded" />
+        </div>
       )}
       {list &&
         list.length !== 0 &&
@@ -95,4 +103,4 @@ const Projects = (props) => {
   );
 };
 
-export default Projects;
+export default UserProject;

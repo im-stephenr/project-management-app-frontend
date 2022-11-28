@@ -1,7 +1,10 @@
-import React, { Component } from "react";
+import React, { useContext } from "react";
 import { Link } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 
 const ProjectItem = (props) => {
+  const { authData } = useContext(AuthContext);
+
   return (
     <div className="container">
       <div className="col-md-12">
@@ -10,13 +13,13 @@ const ProjectItem = (props) => {
             <div className="media-left pr-12">
               <img
                 className="avatar avatar-xl no-radius"
-                src="https://bootdey.com/img/Content/avatar/avatar1.png"
+                src={`${process.env.REACT_APP_ASSET_URL}/${props.avatar}`}
                 alt="..."
               />
             </div>
             <div className="media-body">
               <div className="mb-2">
-                <span className="fs-20 pr-16">{props.author}</span>
+                <span className="fs-20 pr-16">{props.title}</span>
               </div>
               <small className="fs-16 fw-300 ls-1">
                 {props.description.length > 100 &&
@@ -24,40 +27,36 @@ const ProjectItem = (props) => {
                 {props.description.length < 150 && props.description}
               </small>
             </div>
-            <div className="media-right text-right d-none d-md-block">
-              <span className="text-fade">
-                <i className="fa fa-money-bill pr-1"></i>{" "}
-                {props.price === 0 && `Not for sale`}
-                {props.price !== 0 && `$${props.price} Sell Price`}
-              </span>
-            </div>
           </div>
           <footer className="card-footer flexbox align-items-center">
             <div>
-              <strong>Created on: </strong>
-              <span>{props.date_created}</span>
+              <strong>Creator: </strong>
+              <span>{props.author}</span>
             </div>
             <div className="card-hover-show">
               <Link
                 className="btn btn-xs fs-10 btn-bold btn-info"
-                to={`/${props.id}`}
+                to={`/projects/${props.id}`}
               >
                 View
               </Link>
-              <Link
-                className="btn btn-xs fs-10 btn-bold btn-primary"
-                to={`/${props.id}`}
-                data-toggle="modal"
-                data-target="#modal-contact"
-              >
-                Edit
-              </Link>
-              <button
-                type="button"
-                className="btn btn-xs fs-10 btn-bold btn-warning"
-              >
-                Delete
-              </button>
+              {authData && authData.userId === props.author_id && (
+                <Link
+                  className="btn btn-xs fs-10 btn-bold btn-primary"
+                  to={`/projects/${props.id}/update`}
+                >
+                  Edit
+                </Link>
+              )}
+              {authData && authData.userId === props.author_id && (
+                <button
+                  type="button"
+                  className="btn btn-xs fs-10 btn-bold btn-warning"
+                  onClick={() => props.handleDelete(props.id)}
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </footer>
         </div>

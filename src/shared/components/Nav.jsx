@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { useLogout } from "../../custom-hooks/useLogout";
+import { AuthContext } from "../../context/AuthContext";
 
 const Nav = () => {
   const [settingStatus, setSettingStatus] = useState("");
-  let toggleSetting;
+  const { logout } = useLogout();
+  const { authData } = useContext(AuthContext);
 
   const handleToggleSetting = () => {
     if (settingStatus === "") {
@@ -42,38 +45,42 @@ const Nav = () => {
           </button>
         </div>
       </form>
-      <ul className="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
-        <li className="nav-item dropdown">
-          <a
-            className="nav-link dropdown-toggle"
-            id="navbarDropdown"
-            onClick={() => handleToggleSetting()}
-            href="#"
-            role="button"
-            aria-expanded="false"
-          >
-            <i className="fas fa-user fa-fw"></i>
-          </a>
-          <ul
-            className={`dropdown-menu dropdown-menu-end ${settingStatus}`}
-            aria-labelledby="navbarDropdown"
-          >
-            <li>
-              <a className="dropdown-item" href="#!">
-                Settings
+      {authData && (
+        <>
+          <ul className="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+            <li className="nav-item dropdown">
+              <a
+                className="nav-link dropdown-toggle"
+                id="navbarDropdown"
+                onClick={() => handleToggleSetting()}
+                href="#"
+                role="button"
+                aria-expanded="false"
+              >
+                <i className="fas fa-user fa-fw"></i>
               </a>
-            </li>
-            <li>
-              <hr className="dropdown-divider" />
-            </li>
-            <li>
-              <a className="dropdown-item" href="#!">
-                Logout
-              </a>
+              <ul
+                className={`dropdown-menu dropdown-menu-end ${settingStatus}`}
+                aria-labelledby="navbarDropdown"
+              >
+                <li>
+                  <a className="dropdown-item" href="#!">
+                    Settings
+                  </a>
+                </li>
+                <li>
+                  <hr className="dropdown-divider" />
+                </li>
+                <li>
+                  <a className="dropdown-item" onClick={logout} href="#!">
+                    Logout
+                  </a>
+                </li>
+              </ul>
             </li>
           </ul>
-        </li>
-      </ul>
+        </>
+      )}
     </nav>
   );
 };

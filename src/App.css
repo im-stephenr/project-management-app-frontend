@@ -244,3 +244,8 @@ time,
 .dropdown-menu {
   left: -100px;
 }
+
+/* CAROUSEL */
+.carousel-item img {
+  width: 100%;
+}

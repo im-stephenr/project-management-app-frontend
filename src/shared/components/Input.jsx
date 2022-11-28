@@ -58,13 +58,13 @@ const inputReducer = (state, action) => {
     case "CHANGE":
       return {
         ...state,
-        id: action.inputData.id,
         value: action.inputData.value,
         validation: action.inputData.validation,
       };
     case "BLUR":
       return {
         ...state,
+        value: action.inputData.value,
         validation: action.inputData.validation,
       };
     default:
@@ -74,22 +74,21 @@ const inputReducer = (state, action) => {
 
 const Input = (props) => {
   const [inputState, dispatch] = useReducer(inputReducer, {
-    id: props.id, // initialized id
-    value: props.value || "", // initialized value if no value property from parent then show empty value
+    value: "", // initialized value if no value property from parent then show empty value
     validation: { errorMessage: "", isValid: false }, // initialized validation
   });
 
   // trigger only to class validity if use has touched the input
   const [isTouched, setIstouched] = useState(false);
 
-  // pass the input id and value useForm hook inputHandler, triggers if inputState changes
   useEffect(() => {
-    props.inputHandler(
-      inputState.id,
+    // form onInput save the current state of input into the whole form states
+    props.onFormInput(
+      props.id,
       inputState.value,
       inputState.validation.isValid
     );
-  }, [inputState]);
+  }, [props.id, inputState.value, inputState.validation.isValid]);
 
   // Input element onInput
   const onInputHandler = (e) => {
@@ -97,7 +96,6 @@ const Input = (props) => {
       type: "CHANGE",
       inputData: {
         ...inputState,
-        id: e.target.id,
         value: e.target.value,
         validation: handleInputValidation(props.validation, e.target.value),
       },
@@ -110,6 +108,8 @@ const Input = (props) => {
     dispatch({
       type: "BLUR",
       inputData: {
+        ...inputState,
+        value: e.target.value,
         validation: handleInputValidation(props.validation, e.target.value),
       },
     });
@@ -121,13 +121,14 @@ const Input = (props) => {
       <>
         <label htmlFor={props.id}>{props.label}</label>
         <textarea
-          onChange={onInputHandler}
+          onInput={onInputHandler}
           onBlur={onBlurHandler}
           className={`form-control 
           ${isTouched && !inputState.validation.isValid && "is-invalid"} 
           ${isTouched && inputState.validation.isValid && "is-valid"}`}
           rows="5"
           id={props.id}
+          value={props.value || inputState.value}
         ></textarea>
       </>
     ) : (
@@ -139,8 +140,9 @@ const Input = (props) => {
           id={props.id}
           type={props.type}
           placeholder={props.placeholder}
-          onChange={onInputHandler}
+          onInput={onInputHandler}
           onBlur={onBlurHandler}
+          value={props.value || inputState.value}
         />
         <label htmlFor={props.id}>{props.label}</label>
       </>

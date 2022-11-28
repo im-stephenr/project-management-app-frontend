@@ -1,48 +1,31 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React from "react";
 import Button from "../../shared/components/Button";
 import Input from "../../shared/components/Input";
 import MainContainer from "../../shared/components/MainContainer";
 import { Link } from "react-router-dom";
 import AlertWarning from "../../shared/components/AlertWarning";
 import useForm from "../../custom-hooks/form-hooks";
-
-const DUMMY_USER = [
-  {
-    id: "1",
-    username: "admin",
-    password: "123123123",
-    name: "StephenR",
-  },
-  {
-    id: "2",
-    username: "admin2",
-    password: "123123123",
-    name: "KayenL",
-  },
-];
+import { useLogin } from "../../custom-hooks/useLogin";
 
 const UserLogin = () => {
   // Handle Form
-  const [inputHandler, formStates] = useForm({});
-  // Display error
-  const [error, setError] = useState("");
+  const [inputHandler, formStates] = useForm(
+    {
+      username: { value: "", isValid: false },
+      password: { value: "", isValid: false },
+    },
+    false
+  );
+
+  const { login, error } = useLogin();
+
   // Handle Login
   const handleLogin = (event) => {
     event.preventDefault();
-    console.log(formStates);
-    // Check credentials
-    const getUser = DUMMY_USER.find(
-      (u) =>
-        u.username === formStates.username.value &&
-        u.password === formStates.password.value
+    login(
+      formStates.postData.username.value,
+      formStates.postData.password.value
     );
-    if (getUser) {
-      console.log("Logged in successfully! Redirecting to login...");
-      setError("");
-    } else {
-      console.log("Invalid credentials!");
-      setError("Invalid credentials!");
-    }
   };
 
   return (
@@ -58,8 +41,9 @@ const UserLogin = () => {
             placeholder="Username"
             type="text"
             label="Username"
-            inputHandler={inputHandler}
+            onFormInput={inputHandler}
             validation={["REQUIRED"]}
+            value=""
           />
         </div>
         <div className="form-floating mb-3">
@@ -68,8 +52,9 @@ const UserLogin = () => {
             type="password"
             placeholder="Password"
             label="Password"
-            inputHandler={inputHandler}
+            onFormInput={inputHandler}
             validation={["REQUIRED"]}
+            value=""
           />
         </div>
         {error && <AlertWarning type="danger" message={error} />}

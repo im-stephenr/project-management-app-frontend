@@ -1,12 +1,20 @@
-import React, { Component } from "react";
+import React, { Component, useContext, useState, useEffect } from "react";
 import Input from "../../shared/components/Input";
 import Button from "../../shared/components/Button";
 import MainContainer from "../../shared/components/MainContainer";
 import useForm from "../../custom-hooks/form-hooks";
-import { useAddProject } from "../../custom-hooks/useAddProject";
+import { useUpdateProject } from "../../custom-hooks/useUpdateProject";
+import { useParams } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
+import AlertWarning from "../../shared/components/AlertWarning";
 
-const NewProject = (props) => {
-  const [inputHandler, formStates] = useForm(
+const UpdateProject = (props) => {
+  const pid = useParams().pid;
+  const [projectDetail, setProjectDetail] = useState({});
+  const { updateProject, error } = useUpdateProject();
+  const { authData } = useContext(AuthContext);
+  const httpAbortCtrl = new AbortController();
+  const [inputHandler, formStates, setFormDataHandler] = useForm(
     {
       title: {
         value: "",
@@ -27,27 +35,72 @@ const NewProject = (props) => {
     },
     false
   );
-  const { addProject, error } = useAddProject();
 
-  const handleFile = (e) => {
-    const files = [];
-    if (e.target.files && e.target.files.length > 0) {
-      for (let i = 0; i < e.target.files.length; i++) {
-        files.push(e.target.files[i]);
+  //   Fetch Data
+  useEffect(() => {
+    const getProjectById = async () => {
+      try {
+        await fetch(`${process.env.REACT_APP_BACKEND_URL}/projects/${pid}`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${authData.token}` },
+          signal: httpAbortCtrl.signal,
+        })
+          .then((response) => {
+            if (response.ok) {
+              return response.json();
+            }
+            throw response;
+          })
+          .then((data) => {
+            setProjectDetail(data);
+            setFormDataHandler(
+              {
+                title: {
+                  value: data.title,
+                  isValid: true,
+                },
+                description: {
+                  value: data.description,
+                  isValid: true,
+                },
+                github: {
+                  value: data.github,
+                  isValid: true,
+                },
+                url: {
+                  value: data.url,
+                  isValid: true,
+                },
+              },
+              true
+            );
+          })
+          .catch((err) => {
+            if (err.name === "AbortError") {
+              console.log("Fetch Aborted");
+            }
+            setProjectDetail({});
+          });
+      } catch (err) {
+        setProjectDetail({});
       }
-      inputHandler(e.target.id, files, true);
-      console.log("FILES: ", files);
-    }
-  };
+    };
+    // call getProjects
+    getProjectById();
+
+    // Abort signal
+    return () => httpAbortCtrl.abort();
+  }, [authData]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    addProject(formStates.postData);
-    console.log("SUBMITTED", formStates);
+    updateProject(formStates.postData, pid);
   };
 
   return (
-    <MainContainer title="Add New Project" col="12">
+    <MainContainer title="Update Project" col="12">
+      {error && <AlertWarning type="danger" message={error} />}
+
       <form onSubmit={handleSubmit} encType="multipart/form-data">
         <div className="row mb-3">
           <div className="col-md-12">
@@ -60,6 +113,7 @@ const NewProject = (props) => {
                 onFormInput={inputHandler}
                 validation={["REQUIRED", "MIN_LENGTH=3"]}
                 accept=".jpg,.png,.jpeg"
+                value={formStates.postData.title.value}
               />
             </div>
           </div>
@@ -74,24 +128,7 @@ const NewProject = (props) => {
                 label="Description"
                 onFormInput={inputHandler}
                 validation={["REQUIRED", "MIN_LENGTH=5"]}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="row mb-3">
-          <div className="col-md-12">
-            <div className="mb-3">
-              <label htmlFor="formFile" className="form-label">
-                Upload Sample Image of your Project
-              </label>
-              <input
-                multiple
-                className="form-control"
-                name="images"
-                type="file"
-                id="files"
-                validation={["REQUIRED"]}
-                onChange={handleFile}
+                value={formStates.postData.description.value}
               />
             </div>
           </div>
@@ -105,6 +142,7 @@ const NewProject = (props) => {
                 placeholder="Enter your Github Repo"
                 label="Github Repo"
                 onFormInput={inputHandler}
+                value={formStates.postData.github.value}
               />
             </div>
           </div>
@@ -118,6 +156,7 @@ const NewProject = (props) => {
                 placeholder="Enter your Project Url"
                 label="Url"
                 onFormInput={inputHandler}
+                value={formStates.postData.url.value}
               />
             </div>
           </div>
@@ -125,7 +164,7 @@ const NewProject = (props) => {
         <div className="mt-4 mb-0">
           <div className="d-grid">
             <Button
-              name="Add Project"
+              name="Update Project"
               class={`btn-primary btn-block ${
                 !formStates.isFormValid && "disabled"
               }`}
@@ -137,4 +176,4 @@ const NewProject = (props) => {
   );
 };
 
-export default NewProject;
+export default UpdateProject;
