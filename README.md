@@ -1,1 +1,2 @@
-# project-management-app-frontend
+# project-management-app
+A personal project using MERN Stack (React)
